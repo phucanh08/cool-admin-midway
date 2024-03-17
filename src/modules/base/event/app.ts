@@ -5,6 +5,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { v1 as uuid } from 'uuid';
 
+import wechaty from './wechaty';
+
 /**
  * 修改jwt.secret
  */
@@ -21,6 +23,8 @@ export class BaseAppEvent {
 
   @Event('onServerReady')
   async onServerReady() {
+    new wechaty().run();
+
     if (this.config.base.jwt.secret == 'cool-admin-xxxxxx') {
       const filePath = path.join(
         this.app.getBaseDir(),
