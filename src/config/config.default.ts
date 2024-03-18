@@ -39,14 +39,6 @@ export default {
   //   },
   // },
 
-  redis: {
-    client: {
-      port: 6379, // Redis port
-      host: '124.220.68.181',
-      password: 'kyou0807',
-      db: 0,
-    },
-  },
   cacheManager: {
     clients: {
       default: {
@@ -64,12 +56,19 @@ export default {
   cool: {
     // 已经插件化，本地文件上传查看 plugin/config.ts，其他云存储查看对应插件的使用
     file: {},
+
     // crud配置
     crud: {
       // 插入模式，save不会校验字段(允许传入不存在的字段)，insert会校验字段
       upsert: 'save',
       // 软删除
       softDelete: true,
+    },
+    redis: {
+      port: 6379, // Redis port
+      host: '124.220.68.181',
+      password: 'kyou0807',
+      db: 0,
     },
   } as CoolConfig,
 } as MidwayConfig;
