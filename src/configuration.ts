@@ -14,7 +14,7 @@ import * as upload from '@midwayjs/upload';
 import { IMidwayApplication } from '@midwayjs/core';
 // import * as swagger from '@midwayjs/swagger';
 // import * as rpc from '@cool-midway/rpc';
-// import * as task from '@cool-midway/task';
+import * as task from '@cool-midway/task';
 
 @Configuration({
   imports: [
@@ -39,7 +39,7 @@ import { IMidwayApplication } from '@midwayjs/core';
     // rpc 微服务 远程调用
     // rpc,
     // 任务与队列
-    // task,
+    task,
     // swagger 文档  http://www.midwayjs.org/docs/extensions/swagger
     // swagger,
     {
