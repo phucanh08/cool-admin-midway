@@ -1,3 +1,4 @@
+import { BaseOnmyojiTaskService } from './../service/onmyoji/task';
 import { CoolEvent, Event } from '@cool-midway/core';
 import { App, Config, ILogger, Inject, Logger } from '@midwayjs/core';
 import { IMidwayKoaApplication } from '@midwayjs/koa';
@@ -21,6 +22,9 @@ export class BaseAppEvent {
   @Inject()
   weChatyBot: WeChatyBot;
 
+  @Inject()
+  baseOnmyojiTaskService: BaseOnmyojiTaskService;
+
   @App()
   app: IMidwayKoaApplication;
 
@@ -28,6 +32,9 @@ export class BaseAppEvent {
   async onServerReady() {
     // 启动微信机器人
     this.weChatyBot.run();
+
+    // 初始化阴阳师定时任务
+    this.baseOnmyojiTaskService.initTask();
 
     if (this.config.base.jwt.secret == 'cool-admin-xxxxxx') {
       const filePath = path.join(

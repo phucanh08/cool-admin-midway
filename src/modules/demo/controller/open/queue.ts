@@ -2,6 +2,7 @@ import { Get, Inject, Post, Provide } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import { DemoCommQueue } from '../../queue/comm';
 import { DemoGetterQueue } from '../../queue/getter';
+import { BaseOnmyojiTaskService } from '../../../base/service/onmyoji/task';
 
 /**
  * 队列
@@ -17,12 +18,21 @@ export class DemoQueueController extends BaseController {
   @Inject()
   demoGetterQueue: DemoGetterQueue;
 
+  @Inject()
+  baseOnmyojiTaskService: BaseOnmyojiTaskService;
+
   /**
    * 发送数据到队列
    */
   @Post('/add', { summary: '发送队列数据' })
   async queue() {
-    this.demoCommQueue.add({ a: 2 });
+    this.baseOnmyojiTaskService.add({
+      taskName: 'Test Task',
+      taskStartTime: new Date(),
+      taskStatus: 'ongoing',
+      delayTime: 1 * 60 * 60 * 1000,
+    });
+
     return this.ok();
   }
 

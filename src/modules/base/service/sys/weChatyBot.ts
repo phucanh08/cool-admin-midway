@@ -3,9 +3,9 @@
  * @Autor: 池樱千幻
  * @Change: 池樱千幻
  * @Date: 2024-03-18 09:40:06
- * @LastEditTime: 2024-03-18 17:22:22
+ * @LastEditTime: 2024-03-19 17:07:18
  */
-import { InjectClient, Singleton } from '@midwayjs/core';
+import { Inject, InjectClient, Singleton } from '@midwayjs/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 
@@ -18,6 +18,7 @@ import {
 } from 'wechaty';
 import { BaseWxUserEntity } from '../../entity/sys/wx_user';
 import { Repository } from 'typeorm';
+import { BaseOnmyojiTaskService } from '../onmyoji/task';
 const qrcode = require('qrcode-terminal');
 
 @Singleton()
@@ -25,10 +26,15 @@ export class WeChatyBot {
   @InjectEntityModel(BaseWxUserEntity)
   baseWxUserEntity: Repository<BaseWxUserEntity>;
 
+  @Inject()
+  baseOnmyojiTaskService: BaseOnmyojiTaskService;
+
   @InjectClient(CachingFactory, 'default')
   midwayCache: MidwayCache;
 
   bot = null;
+  loginFlag = false;
+
   constructor() {
     this.bot = WechatyBuilder.build();
     this.bot.on('scan', (qrcode: string) => {
@@ -120,12 +126,32 @@ export class WeChatyBot {
       return;
     }
 
+    if (text === '寄养') {
+      this.foster(15000);
+      return;
+    }
+
     await this.sendMessageByName(
       '0.0',
       `群聊[${room.payload.topic}]中,[${
         talker.payload.alias || talker.payload.name
       }]说了:[${text}]`
     );
+  }
+
+  /**
+   * @description: 寄养逻辑, 插入一条onmyoji_task记录,并记录6小时后的时间
+   * @return {*}
+   * @author: 池樱千幻
+   */
+  private async foster(delayTime = 6 * 60 * 60 * 1000) {
+    this.baseOnmyojiTaskService.add({
+      taskName: '寄养',
+      taskDesc: '大号寄养到期',
+      taskStartTime: new Date(),
+      taskStatus: 'ongoing',
+      delayTime,
+    });
   }
 
   /**
@@ -192,12 +218,14 @@ export class WeChatyBot {
 
   onLogin(bot) {
     console.info('登录成功', bot);
+    this.loginFlag = true;
     setTimeout(() => {
       this.loadContactList();
     }, 3000);
   }
   onLogout(user) {
     console.log('user: ', user);
+    this.loginFlag = false;
   }
 
   /**
