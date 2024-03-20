@@ -3,10 +3,10 @@
  * @Autor: 池樱千幻
  * @Change: 池樱千幻
  * @Date: 2024-03-19 13:10:38
- * @LastEditTime: 2024-03-19 17:02:51
+ * @LastEditTime: 2024-03-20 16:49:18
  */
 import { BaseCoolQueue, CoolQueue } from '@cool-midway/task';
-import { Inject } from '@midwayjs/core';
+import { ILogger, Inject } from '@midwayjs/core';
 import { BaseOnmyojiTaskService } from '../service/onmyoji/task';
 import { BaseOnmyojiTaskEntity, TaskStatus } from '../entity/onmyoji/task';
 import { WeChatyBot } from '../service/sys/weChatyBot';
@@ -22,10 +22,12 @@ export abstract class OnmyojiTaskQueue extends BaseCoolQueue {
   @Inject()
   weChatyBot: WeChatyBot;
 
-  async data(job: any, done: any) {
-    console.log('收到的数据', job.data);
-    // 延时队列执行, 将加入到队列的数据发送到微信去
+  @Inject()
+  logger: ILogger;
 
+  async data(job: any, done: any) {
+    this.logger.info('收到的数据: %j', job.data);
+    // 延时队列执行, 将加入到队列的数据发送到微信去
     let onmyojiTask: BaseOnmyojiTaskEntity = job.data;
     onmyojiTask.taskStatus = TaskStatus.END;
     this.baseOnmyojiTaskService.update(onmyojiTask);

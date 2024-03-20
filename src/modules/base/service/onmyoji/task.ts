@@ -31,15 +31,6 @@ export class BaseOnmyojiTaskService extends BaseService {
     this.setEntity(this.baseOnmyojiTaskEntity);
   }
 
-  async getTaskListByDate(date: Date = new Date()) {
-    const taskList = await this.baseOnmyojiTaskEntity.find({
-      where: {
-        taskStartTime: date,
-      },
-    });
-    return taskList;
-  }
-
   /**
    * task添加之前, 将数据添加进队列中.
    * @param data
@@ -51,9 +42,7 @@ export class BaseOnmyojiTaskService extends BaseService {
   ) {
     if (type === 'add') {
       // 根据data的开始时间与间隔,计算结束时间
-      data.taskEndTime = new Date(
-        data.taskStartTime.getTime() + data.delayTime
-      );
+      data.taskEndTime = new Date(new Date().getTime() + data.delayTime);
     }
   }
 
@@ -87,20 +76,28 @@ export class BaseOnmyojiTaskService extends BaseService {
 
     const taskList = await this.baseOnmyojiTaskEntity
       .createQueryBuilder()
-      .where('taskStatus = :taskStatus', { taskStatus: 1 })
+      .where('taskStatus = :taskStatus', { taskStatus: TaskStatus.ONGOING })
       .andWhere('taskEndTime > :currentTime', { currentTime: new Date() })
       .getMany();
 
+    this.logger.info('正在进行中的任务数量:%s', taskList.length);
+
     // 根据当前时间减去任务结束时间,计算延迟时间,并将任务加入队列
-    for (let i = 0; i < taskList.length; i++) {
-      const task = taskList[i];
+    taskList.forEach(task => {
       const delayTime = task.taskEndTime.getTime() - new Date().getTime();
-      console.log('delayTime: ', delayTime);
       this.onmyojiTaskQueue.add(task, {
         delay: delayTime,
       });
-    }
+    });
 
-    console.log('taskList: ', taskList);
+    // 查询已经过期的任务, 将任务状态置为结束(过期)
+    const result = await this.baseOnmyojiTaskEntity
+      .createQueryBuilder()
+      .update(BaseOnmyojiTaskEntity)
+      .set({ taskStatus: TaskStatus.EXPIRED }) // 设置状态为过期
+      .where('taskStatus = :taskStatus', { taskStatus: TaskStatus.ONGOING }) // 未完成
+      .andWhere('taskEndTime < :currentTime', { currentTime: new Date() }) // 结束时间大于当前时间
+      .execute();
+    this.logger.info(`${result.affected}条数据已过期`);
   }
 }

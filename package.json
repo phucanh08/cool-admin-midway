@@ -17,6 +17,7 @@
     "@midwayjs/koa": "^3.15.1",
     "@midwayjs/logger": "^3.3.0",
     "@midwayjs/static-file": "^3.15.1",
+    "@midwayjs/swagger": "^3.15.3",
     "@midwayjs/typeorm": "^3.15.0",
     "@midwayjs/upload": "^3.15.1",
     "@midwayjs/validate": "^3.15.1",

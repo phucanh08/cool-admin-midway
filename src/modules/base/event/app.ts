@@ -30,11 +30,11 @@ export class BaseAppEvent {
 
   @Event('onServerReady')
   async onServerReady() {
-    // 启动微信机器人
-    this.weChatyBot.run();
+    // // 启动微信机器人
+    // this.weChatyBot.run();
 
     // 初始化阴阳师定时任务
-    this.baseOnmyojiTaskService.initTask();
+    // this.baseOnmyojiTaskService.initTask();
 
     if (this.config.base.jwt.secret == 'cool-admin-xxxxxx') {
       const filePath = path.join(

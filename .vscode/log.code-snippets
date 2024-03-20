@@ -1,0 +1,9 @@
+{
+  "log": {
+    "prefix": "log",
+    "body": [
+      "this.logger.info('$0');",
+    ],
+    "description": "cool-admin log日志打印代码片段"
+  }
+}

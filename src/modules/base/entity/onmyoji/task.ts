@@ -1,10 +1,11 @@
 import { BaseEntity } from '@cool-midway/core';
-import { Column, Entity } from 'typeorm';
+import { Column, CreateDateColumn, Entity } from 'typeorm';
 import { v1 as uuid } from 'uuid';
 
 export enum TaskStatus {
   ONGOING = 'ongoing',
   END = 'end',
+  EXPIRED = 'expired',
 }
 
 export enum TaskType {
@@ -43,7 +44,7 @@ export class BaseOnmyojiTaskEntity extends BaseEntity {
   })
   taskStatus: TaskStatus;
 
-  @Column({ comment: '任务开始时间' })
+  @CreateDateColumn({ comment: '任务开始时间' })
   taskStartTime: Date;
 
   @Column({ comment: '任务结束时间', nullable: true })
