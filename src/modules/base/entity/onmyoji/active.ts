@@ -1,13 +1,13 @@
 import { BaseEntity } from '@cool-midway/core';
-import { Column, Entity } from 'typeorm';
-import { v1 as uuid } from 'uuid';
+import { Column, Entity, Generated } from 'typeorm';
 
 /**
  * 阴阳师活动记录表
  */
 @Entity('base_onmyoji_active')
 export class BaseOnmyojiActiveEntity extends BaseEntity {
-  @Column({ comment: '活动ID', unique: true, default: uuid() })
+  @Column({ comment: '活动ID', unique: true })
+  @Generated('uuid')
   activeId: string;
 
   @Column({ comment: '活动名称', nullable: true })

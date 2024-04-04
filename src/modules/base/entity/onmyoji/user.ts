@@ -11,4 +11,7 @@ export class BaseOnmyojiUserEntity extends BaseEntity {
 
   @Column({ comment: '用户名' })
   username: string;
+
+  @Column({ comment: '排序', default: 0 })
+  sort: number;
 }

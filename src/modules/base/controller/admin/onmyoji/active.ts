@@ -1,6 +1,7 @@
 import { CoolController, BaseController } from '@cool-midway/core';
 import { BaseOnmyojiActiveEntity } from '../../../entity/onmyoji/active';
 import { BaseOnmyojiActiveService } from '../../../service/onmyoji/active';
+import { Inject, Post } from '@midwayjs/core';
 
 /**
  * 描述
@@ -10,4 +11,7 @@ import { BaseOnmyojiActiveService } from '../../../service/onmyoji/active';
   entity: BaseOnmyojiActiveEntity,
   service: BaseOnmyojiActiveService,
 })
-export class BaseOnmyojiActiveController extends BaseController {}
+export class BaseOnmyojiActiveController extends BaseController {
+  @Inject()
+  baseOnmyojiActiveService: BaseOnmyojiActiveService;
+}

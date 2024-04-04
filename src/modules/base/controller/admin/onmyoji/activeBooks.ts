@@ -11,16 +11,23 @@ import { BaseOnmyojiUserEntity } from '../../../entity/onmyoji/user';
   entity: BaseOnmyojiActiveBooksEntity,
   service: BaseOnmyojiActiveBooksService,
   pageQueryOp: {
+    keyWordLikeFields: ['b.username', 'b.userId'],
     select: ['a.*', 'b.username'],
+    fieldEq: ['activeId'],
+
     // 4.x新增
     join: [
       {
         entity: BaseOnmyojiUserEntity,
         alias: 'b',
         condition: 'a.userId = b.userId',
-        type: 'innerJoin',
+        type: 'leftJoin',
       },
     ],
+    // 添加排序
+    addOrderBy: {
+      sort: 'ASC',
+    },
   },
 })
 export class BaseOnmyojiActiveBooksController extends BaseController {}

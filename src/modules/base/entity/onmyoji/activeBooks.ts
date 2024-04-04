@@ -1,6 +1,5 @@
 import { BaseEntity } from '@cool-midway/core';
-import { Column, Entity } from 'typeorm';
-import { v1 as uuid } from 'uuid';
+import { Column, Entity, Generated } from 'typeorm';
 
 /**
  * 描述
@@ -11,8 +10,8 @@ export class BaseOnmyojiActiveBooksEntity extends BaseEntity {
     comment: '活动记录ID',
     unique: true,
     nullable: true,
-    default: uuid(),
   })
+  @Generated('uuid')
   activeBooksId: string;
 
   // 关联活动表的id
@@ -24,4 +23,7 @@ export class BaseOnmyojiActiveBooksEntity extends BaseEntity {
 
   @Column({ comment: '当前活动的参与项ID', nullable: true })
   activeItemId: string;
+
+  @Column({ comment: '排序', default: 0 })
+  sort: number;
 }

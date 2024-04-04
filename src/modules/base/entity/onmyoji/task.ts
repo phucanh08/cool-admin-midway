@@ -1,7 +1,5 @@
 import { BaseEntity } from '@cool-midway/core';
-import { Column, CreateDateColumn, Entity } from 'typeorm';
-import { v1 as uuid } from 'uuid';
-
+import { Column, CreateDateColumn, Entity, Generated } from 'typeorm';
 export enum TaskStatus {
   ONGOING = 'ongoing',
   END = 'end',
@@ -17,7 +15,8 @@ export enum TaskType {
  */
 @Entity('base_onmyoji_task')
 export class BaseOnmyojiTaskEntity extends BaseEntity {
-  @Column({ comment: '任务ID', unique: true, default: uuid() })
+  @Column({ comment: '任务ID', unique: true })
+  @Generated('uuid')
   taskId: string;
 
   @Column({ comment: '任务名称' })
