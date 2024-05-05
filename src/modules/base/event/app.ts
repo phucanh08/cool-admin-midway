@@ -33,9 +33,9 @@ export class BaseAppEvent {
   @App()
   app: IMidwayKoaApplication;
 
-
   @Event('onMenuInit')
   async onMenuInit() {
+    console.log('初始化!!');
     // // 启动微信机器人
     // this.weChatyBot.run();
 

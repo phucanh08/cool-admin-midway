@@ -7,7 +7,7 @@ import { redisStore } from 'cache-manager-ioredis-yet';
 
 export default {
   // use for cookie sign key, should change to your own and keep security
-  keys: 'cool-admin-keys-xxxxxx',
+  keys: 'onmyoji-admin-keys-cpyp0101',
   koa: {
     port: 8001,
   },
