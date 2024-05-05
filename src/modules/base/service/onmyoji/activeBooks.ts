@@ -26,7 +26,9 @@ export class BaseOnmyojiActiveBooksService extends BaseService {
    */
   async page(query: any, option: any, connectionName?: any) {
     let activeUserItemList = await this.baseOnmyojiActiveUserItemEntity.find({
-      activeId: query.activeId,
+      where: {
+        activeId: query.activeId,
+      },
     });
     const result = await super.page(query, option, connectionName);
     // 拼接activeUserItem的数据到list中

@@ -28,7 +28,7 @@ export class BaseOnmyojiActiveItemService extends BaseService {
   // 重写add方法
   async add(data: BaseOnmyojiActiveItemEntity) {
     // 新增活动项
-    let activeItemObj = await super.add(data);
+    let activeItemObj: any = await super.add(data);
 
     // 根据返回的活动项id 查询活动项
     let activeItem = await this.baseOnmyojiActiveItemEntity.findOneBy({
