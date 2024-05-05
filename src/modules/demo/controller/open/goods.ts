@@ -1,6 +1,6 @@
 import { DemoGoodsService } from '../../service/goods';
 import { DemoGoodsEntity } from '../../entity/goods';
-import { Body, Inject, Post, Provide } from '@midwayjs/decorator';
+import { Body, Config, Inject, Post, Provide } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,13 +8,12 @@ import { Repository } from 'typeorm';
 /**
  * 测试
  */
-@Provide()
 @CoolController({
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: DemoGoodsEntity,
   service: DemoGoodsService,
 })
-export class AppDemoGoodsController extends BaseController {
+export class OpenDemoGoodsController extends BaseController {
   @InjectEntityModel(DemoGoodsEntity)
   demoGoodsEntity: Repository<DemoGoodsEntity>;
 

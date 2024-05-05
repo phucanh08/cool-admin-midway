@@ -35,9 +35,36 @@ export class AppUserLoginController extends BaseController {
   }
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Post('/wxApp', { summary: '微信APP授权登录' })
+  async app(@Body('code') code: string) {
+    return this.ok(await this.userLoginService.wxApp(code));
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
   @Post('/phone', { summary: '手机号登录' })
   async phone(@Body('phone') phone: string, @Body('smsCode') smsCode: string) {
-    return this.ok(await this.userLoginService.phone(phone, smsCode));
+    return this.ok(await this.userLoginService.phoneVerifyCode(phone, smsCode));
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Post('/uniPhone', { summary: '一键手机号登录' })
+  async uniPhone(
+    @Body('access_token') access_token: string,
+    @Body('openid') openid: string,
+    @Body('appId') appId: string
+  ) {
+    return this.ok(
+      await this.userLoginService.uniPhone(access_token, openid, appId)
+    );
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Post('/miniPhone', { summary: '绑定小程序手机号' })
+  async miniPhone(@Body() body) {
+    const { code, encryptedData, iv } = body;
+    return this.ok(
+      await this.userLoginService.miniPhone(code, encryptedData, iv)
+    );
   }
 
   @CoolTag(TagTypes.IGNORE_TOKEN)

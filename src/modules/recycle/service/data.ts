@@ -46,6 +46,7 @@ export class RecycleDataService extends BaseService {
    */
   async record(params) {
     const { ctx, data, entity } = params;
+    if (!ctx?.req) return;
     const dataSourceName =
       this.typeORMDataSourceManager.getDataSourceNameByModel(entity.target);
     const url = ctx?.url;

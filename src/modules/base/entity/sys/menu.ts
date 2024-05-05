@@ -36,9 +36,12 @@ export class BaseSysMenuEntity extends BaseEntity {
   @Column({ comment: '路由缓存', default: true })
   keepAlive: boolean;
 
+  @Column({ comment: '是否显示', default: true })
+  isShow: boolean;
+
   // 父菜单名称
   parentName: string;
 
-  @Column({ comment: '是否显示', default: true })
-  isShow: boolean;
+  // 子菜单
+  childMenus: any;
 }

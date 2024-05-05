@@ -1,4 +1,4 @@
-import { CoolEvent, Event } from '@cool-midway/core';
+import { CoolEvent, CoolEventManager, Event } from '@cool-midway/core';
 import { BaseSysMenuService } from '../service/sys/menu';
 import {
   App,
@@ -22,6 +22,9 @@ export class BaseMenuEvent {
   @App()
   app: IMidwayApplication;
 
+  @Inject()
+  coolEventManager: CoolEventManager;
+
   @Event('onMenuImport')
   async onMenuImport(datas) {
     for (const module in datas) {
@@ -32,5 +35,6 @@ export class BaseMenuEvent {
           '] module menu success \x1B[0m'
       );
     }
+    this.coolEventManager.emit('onMenuInit', {});
   }
 }

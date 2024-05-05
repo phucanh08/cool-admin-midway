@@ -6,7 +6,7 @@ import { CoolEvent, Event } from '@cool-midway/core';
  * 应用事件
  */
 @CoolEvent()
-export class AppEvent {
+export class TaskAppEvent {
   @Inject()
   taskInfoService: TaskInfoService;
 
