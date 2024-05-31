@@ -17,7 +17,7 @@ export class ReportInfo implements IMethodAspect {
     this.logger.info('');
 
     console.log('AOP调用的方法', point.methodName);
-    const weChatyBot = point.target.bot as WeChatyBot;
+    const weChatyBot = point.target as WeChatyBot;
     if (!weChatyBot.loginFlag && point.methodName !== 'run') {
       throw new CoolCommException('机器人未登录');
     }

@@ -3,7 +3,7 @@
  * @Autor: 池樱千幻
  * @Change: 池樱千幻
  * @Date: 2024-03-18 09:40:06
- * @LastEditTime: 2024-03-19 17:07:18
+ * @LastEditTime: 2024-05-08 15:34:12
  */
 import { Inject, InjectClient, Singleton } from '@midwayjs/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
@@ -15,6 +15,7 @@ import {
   log,
   Contact,
   BuilderInterface,
+  ScanStatus,
 } from 'wechaty';
 import { BaseWxUserEntity } from '../../entity/sys/wx_user';
 import { Repository } from 'typeorm';
@@ -37,14 +38,20 @@ export class WeChatyBot {
 
   constructor() {
     this.bot = WechatyBuilder.build();
-    this.bot.on('scan', (qrcode: string) => {
-      this.midwayCache.set('a', 1);
-      const qrcodeImageUrl = [
-        'https://api.qrserver.com/v1/create-qr-code/?data=',
-        encodeURIComponent(qrcode),
-      ].join('');
+    this.bot.on('scan', (qrcode: string, status: ScanStatus) => {
+      console.info(
+        'Scan QR Code to login, status:',
+        status,
+        ScanStatus[status]
+      );
+      // const qrcodeImageUrl = [
+      //   'https://api.qrserver.com/v1/create-qr-code/?data=',
+      //   encodeURIComponent(qrcode),
+      // ].join('');
 
-      console.log(`扫码登录:\n ${qrcodeImageUrl} \n`);
+      this.midwayCache.set('qrcode_60', encodeURIComponent(qrcode), 60 * 1000);
+
+      // console.log(`扫码登录:\n ${qrcodeImageUrl} \n`);
     });
     this.bot.on('message', this.onMessage.bind(this));
     this.bot.on('login', bot => this.onLogin(bot));
@@ -92,22 +99,6 @@ export class WeChatyBot {
       // 如果是私聊, 就直接回复
       await talker.say(`我重复你的话:[${text}]`);
     }
-
-    // const talker = message.talker();
-    // console.log('talker: ', talker);
-    // if (
-    //   !talker.payload.friend ||
-    //   message.payload.roomId ||
-    //   talker.payload.type != 1
-    // ) {
-    //   return;
-    // }
-    // if (message.payload.type != 7) {
-    //   talker.say('我只能处理文字消息,请发送文字内容');
-    //   return;
-    // }
-    // const content = message.text();
-    // talker.say(`你好, 我收到了您发的消息 [${content}]`);
   }
 
   /**
@@ -224,7 +215,7 @@ export class WeChatyBot {
     }, 3000);
   }
   onLogout(user) {
-    console.log('user: ', user);
+    console.log('user:onLogout ', user);
     this.loginFlag = false;
   }
 
@@ -234,10 +225,15 @@ export class WeChatyBot {
    * @author: 池樱千幻
    */
   run() {
-    this.bot.start().catch(async e => {
-      log.error('Bot', 'init() fail: %s', e);
-      await this.bot.stop();
-      process.exit(-1);
-    });
+    if (!this.loginFlag) {
+      return this.bot.start();
+    }
+  }
+
+  // bot 重启
+  async restart() {
+    this.loginFlag = false;
+    await this.bot.stop();
+    this.bot.start();
   }
 }
