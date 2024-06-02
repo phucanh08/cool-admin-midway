@@ -37,7 +37,7 @@ export class BaseAppEvent {
   async onMenuInit() {
     console.log('初始化!!');
     // // 启动微信机器人
-    this.weChatyBot.run();
+    // this.weChatyBot.run();
 
     // 初始化阴阳师定时任务
     this.baseOnmyojiTaskService.initTask();

@@ -1,6 +1,20 @@
 import { CoolConfig } from '@cool-midway/core';
 import { MidwayConfig } from '@midwayjs/core';
 import { CoolCacheStore } from '@cool-midway/core';
+import { createAdapter } from '@socket.io/redis-adapter';
+
+import Redis from 'ioredis';
+
+const redisOptions = {
+  port: 6379,
+  host: '124.220.68.181',
+  password: 'kyou0807',
+  ttl: 0,
+  db: 0,
+};
+
+const pubClient = new Redis(redisOptions);
+const subClient = pubClient.duplicate();
 
 // redis缓存
 import { redisStore } from 'cache-manager-ioredis-yet';
@@ -43,14 +57,18 @@ export default {
     clients: {
       default: {
         store: redisStore,
-        options: {
-          port: 6379,
-          host: '124.220.68.181',
-          password: 'kyou0807',
-          ttl: 0,
-          db: 0,
-        },
+        options: redisOptions,
       },
+    },
+  },
+  // socketio
+  socketIO: {
+    upgrades: ['websocket'], // 可升级的协议
+    adapter: createAdapter(pubClient, subClient),
+    port: 7001,
+    cors: {
+      origin: 'http://localhost:7001',
+      methods: ['GET', 'POST'],
     },
   },
   cool: {
