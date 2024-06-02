@@ -67,7 +67,7 @@ export default {
     adapter: createAdapter(pubClient, subClient),
     port: 7001,
     cors: {
-      origin: 'http://localhost:7001',
+      origin: 'http://localhost:9000',
       methods: ['GET', 'POST'],
     },
   },
