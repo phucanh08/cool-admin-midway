@@ -15,7 +15,7 @@ import { IMidwayApplication } from '@midwayjs/core';
 import * as swagger from '@midwayjs/swagger';
 // import * as rpc from '@cool-midway/rpc';
 import * as task from '@cool-midway/task';
-import * as socketio from "@midwayjs/socketio";
+import * as socketio from '@midwayjs/socketio';
 
 @Configuration({
   imports: [
@@ -44,7 +44,7 @@ import * as socketio from "@midwayjs/socketio";
     // swagger 文档  http://www.midwayjs.org/docs/extensions/swagger
     swagger,
     // socketio http://www.midwayjs.org/docs/extensions/socketio
-		socketio,
+    socketio,
     {
       component: info,
       enabledEnvironment: ['local'],
