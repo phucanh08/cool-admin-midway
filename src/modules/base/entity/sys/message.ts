@@ -5,7 +5,7 @@ import { Context } from '@midwayjs/socketio';
  * @Autor: 池樱千幻
  * @Change: 池樱千幻
  * @Date: 2024-06-02 23:00:30
- * @LastEditTime: 2024-06-02 23:45:45
+ * @LastEditTime: 2024-06-11 16:15:08
  */
 export class MessageEntity {
   sendTime?: Date = new Date();
@@ -16,6 +16,7 @@ export class MessageEntity {
   messageType: string;
   messageTypeDesc?: string;
   isRead: Boolean = false;
+  data?: any;
 
   constructor(obj: any) {
     Object.assign(this, obj);

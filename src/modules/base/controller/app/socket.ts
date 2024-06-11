@@ -15,6 +15,8 @@ import { BaseSysUserEntity } from '../../entity/sys/user';
 import { Repository } from 'typeorm';
 import { MessageEntity } from '../../entity/sys/message';
 import { v1 as uuid } from 'uuid';
+import { ChatMessageLogEntity } from '../../entity/chat/message_log';
+import { join } from 'path';
 
 /**
  * 测试
@@ -32,6 +34,9 @@ export class ChatController {
 
   @InjectEntityModel(BaseSysUserEntity)
   baseSysUserEntity: Repository<BaseSysUserEntity>;
+
+  @InjectEntityModel(ChatMessageLogEntity)
+  chatMessageLogEntity: Repository<ChatMessageLogEntity>;
 
   async mergeRadisSet(key: string, value: any) {
     let set: any[] = await this.midwayCache.get(key);
@@ -51,16 +56,37 @@ export class ChatController {
     console.log('on client connect', this.ctx.id);
     console.log('参数', this.ctx.handshake.query);
     let { type, userId } = this.ctx.handshake.query;
-    console.log('type', type);
 
     const count = this.socketApp.of('/chat').sockets.size; // 获取单个 namespace 里的连接数
-    console.log('count: ', count);
+    console.log('当前连接数量: ', count);
     const socketsMap = this.socketApp.of('/chat').sockets;
-    // console.log('socketsMap: ', socketsMap);
+    // console.log('socketsMap: ', socketsMap.);
 
     const userInfo = await this.baseSysUserEntity.findOneBy({
       id: Number(userId),
     });
+    this.ctx.data = {
+      userInfo,
+    };
+
+    // 用户连接进来的时候,将用户加入到redis中
+    // let userMap = await this.midwayCache.get('userMap');
+    // if (typeof userId === 'string') {
+    //   if (userMap) {
+    //     userMap[userId] = {
+    //       ...userInfo,
+    //       sid: this.ctx.id,
+    //     };
+    //     await this.midwayCache.set('userMap', userMap);
+    //   } else {
+    //     await this.midwayCache.set('userMap', {
+    //       [userId]: {
+    //         ...userInfo,
+    //         sid: this.ctx.id,
+    //       },
+    //     });
+    //   }
+    // }
 
     const messageEntity = new MessageEntity({
       sendUserId: userId,
@@ -75,30 +101,17 @@ export class ChatController {
     // 根据type 判断当前如果是客服端连接, 就创建一个房间, 并且将客服人员加入到房间中
     if (type === 'service') {
       // 将客服添加进客服列表, 等待用户连接
-      await this.mergeRadisSet('serviceList', {
+      let serviceObj = {
         id: userId,
         sid: this.ctx.id,
         name: userInfo.nickName,
         userList: [], // 当前客服连接的用户数量
-      });
+      };
 
-      // // 创建一个房间
-      // const roomsId = `rooms-${userId}-${uuid()}`;
-      // // 创建一个客服人员列表
-
-      // await this.midwayCache.set(`rooms-${userId}`, [roomsId]);
-
-      // this.ctx.join(roomsId);
-      // messageEntity.roomId = roomsId;
-      // // 向redis中添加一个房间列表, 用于存储当前房间的客服人员与后续准备加入的用户
-      // await this.midwayCache.set(`rooms-personList-${userId}`, [
-      //   {
-      //     id: userId,
-      //     name: userInfo.nickName,
-      //     type: 'service',
-      //   },
-      // ]);
-      //
+      // 查询用户等待列表,如果发现有用户, 就将用户与客服连接
+      serviceObj.userList = await this.connectWaitUserList(userInfo);
+      messageEntity.data = serviceObj.userList;
+      await this.mergeRadisSet('serviceList', serviceObj);
     } else if (type === 'user') {
       // 从redis中获取客服列表, 依次判断每个客服的连接数量是否超过最大值,如果没有超过就选中当前客服
       let serviceList: any[] = await this.midwayCache.get('serviceList');
@@ -119,10 +132,20 @@ export class ChatController {
           messageTypeDesc: '文本消息',
           isRead: false,
         });
+
+        // 将用户加入一个等待客服的列表里, 当有客服的时候, 让客服与用户连接
+        await this.mergeRadisSet('waitUserList', {
+          ...userInfo,
+          sid: this.ctx.id,
+          joinTime: +new Date(),
+        });
+
+        return;
       }
 
       // 使用当前用户与客服的id组成一个房间id
       let roomId = `room-${userId}-${curService.id}`;
+
       messageEntity.roomId = roomId;
       // 将用户添加进房间
       this.ctx.join(roomId);
@@ -146,6 +169,7 @@ export class ChatController {
         data: curService.userList,
       });
     }
+    console.log('this.ctx: ', this.ctx.rooms);
     this.ctx.emit('connect-socket', messageEntity);
   }
 
@@ -161,6 +185,36 @@ export class ChatController {
       id: Number(userId),
     });
 
+    // 找到当前房间的两个sockets对象, 只会有两个,如果有多个就有问题.
+    const sockets = await this.socketApp.of('/chat').in(roomId).fetchSockets();
+    console.log('sockets: ', sockets);
+    let receiveSocket = null;
+
+    for (const socket of sockets) {
+      console.log(socket.id, this.ctx.id);
+      if (socket.id !== this.ctx.id) {
+        receiveSocket = socket;
+      }
+
+      console.log(socket.rooms);
+      // console.log(socket.data);
+      // socket.emit(/* ... */);
+      // socket.join(/* ... */);
+      // socket.leave(/* ... */);
+      // socket.disconnect(/* ... */);
+    }
+    console.log(receiveSocket.data);
+    this.chatMessageLogEntity.save({
+      sendUserId: userInfo.id,
+      sendUserName: userInfo.nickName,
+      receiveUserId: receiveSocket.data.userInfo.id,
+      receiveUserName: receiveSocket.data.userInfo.nickName,
+      message: msg,
+      messageType: 'text',
+      roomId,
+      messageTime: new Date(),
+    });
+
     // 根据roomId找到当前房间的所有用户, 并且发送消息
     this.socketApp.of('/chat').in(roomId).emit('message', {
       sendUserId: userId,
@@ -171,45 +225,6 @@ export class ChatController {
       messageTypeDesc: '文本消息',
       isRead: false,
     });
-
-    // //  获取当前ctx中的roomId
-    // let roomIdSet = this.ctx.rooms;
-    // let lastRoomId = Array.from(roomIdSet)[roomIdSet.size - 1];
-    // console.log('lastRoomId: ', lastRoomId);
-
-    // const userInfo = await this.baseSysUserEntity.findOneBy({
-    //   id: userId,
-    // });
-    // const messageEntity = new MessageEntity({
-    //   sendUserId: userId,
-    //   sendUserName: userInfo?.nickName,
-    //   roomId: lastRoomId || 'room1',
-    //   message: msg,
-    //   messageType: 'text',
-    //   messageTypeDesc: '文本消息',
-    //   isRead: false,
-    // });
-    // // messageEntity.send(this.ctx, 'data');
-    // console.log('messageEntity: ', messageEntity);
-
-    // this.ctx.emit('data', messageEntity);
-    // this.socketApp.in(lastRoomId).emit('data', messageEntity);
-
-    // // this.ctx.to('room1').emit('data', {
-    // //   type: 'message',
-    // //   msg: '消息推送',
-    // //   data
-    // // });
-
-    // let msgList: MessageEntity[] = await this.midwayCache.get(
-    //   `msgList-${lastRoomId}`
-    // );
-    // if (msgList) {
-    //   msgList.push(messageEntity);
-    //   this.midwayCache.set(`msgList-${lastRoomId}`, msgList);
-    // } else {
-    //   this.midwayCache.set(`msgList-${lastRoomId}`, [data]);
-    // }
   }
 
   // 客户端断开连接
@@ -224,23 +239,73 @@ export class ChatController {
     } else {
       // 说明是用户断开连接 从客服的用户列表中删除用户,并告知客服
       let serviceList: any[] = await this.midwayCache.get('serviceList');
-      serviceList[0].userList = serviceList[0].userList.filter(
-        item => item.sid !== this.ctx.id
-      );
-      await this.midwayCache.set('serviceList', serviceList);
-      // 告知客服, 有人断开连接
-      const socketsMap = this.socketApp.of('/chat').sockets;
-      let serviceSocket = socketsMap.get(serviceList[0].sid);
-      serviceSocket.emit('disconnect-user', {
-        sendUserId: '',
-        sendUserName: '',
-        roomId: '',
-        message: '有人断开连接',
-        messageType: 'disconnect-user',
+      if (serviceList && serviceList?.length > 0) {
+        // 找到断开连接的用户
+        const disconnectUser = serviceList[0].userList.find(
+          item => item.sid === this.ctx.id
+        );
+
+        serviceList[0].userList = serviceList[0].userList.filter(
+          item => item.sid !== this.ctx.id
+        );
+        await this.midwayCache.set('serviceList', serviceList);
+        // 告知客服, 有人断开连接
+        const socketsMap = this.socketApp.of('/chat').sockets;
+        let serviceSocket = socketsMap.get(serviceList[0].sid);
+        serviceSocket.emit('disconnect-user', {
+          disconnectUser,
+          message: '有人断开连接',
+          messageType: 'disconnect-user',
+          messageTypeDesc: '文本消息',
+          isRead: false,
+          data: serviceList[0].userList,
+        });
+      }
+
+      // 从waitUserList中删除用户
+      let waitUserList: any[] = await this.midwayCache.get('waitUserList');
+      waitUserList =
+        waitUserList?.filter(item => item.id !== this.ctx.data.userInfo.id) ||
+        [];
+      await this.midwayCache.set('waitUserList', waitUserList);
+    }
+  }
+
+  /**
+   * @description: 根据waitUserList,找到当前客服可以连接的最大用户数量, 然后从waitUserList中根据加入时间的先后挑选用户,将用户与客服连接
+   * @return {*}
+   * @author: 池樱千幻
+   */
+  async connectWaitUserList(serviceInfo) {
+    let waitUserList: any[] = await this.midwayCache.get('waitUserList');
+    console.log('waitUserList: ', waitUserList);
+    const socketsMap = this.socketApp.of('/chat').sockets;
+
+    // 根据时间排序,获取当前客服可以连接的最大用户数量
+    let newWaitUserList = waitUserList
+      ?.sort((a, b) => a.joinTime - b.joinTime)
+      .slice(0, this.maxServiceCount);
+
+    newWaitUserList?.forEach(item => {
+      let roomId = `room-${item.id}-${serviceInfo.id}`;
+      this.ctx.join(roomId);
+      let userSocket = socketsMap.get(item.sid);
+      userSocket.join(roomId);
+      userSocket.emit('connect-service-add', {
+        sendUserId: item.id,
+        sendUserName: item.nickName,
+        roomId: roomId,
+        message: '客服已连接',
+        messageType: 'connect-service-add',
         messageTypeDesc: '文本消息',
         isRead: false,
-        data: serviceList[0].userList,
+        data: {
+          serviceInfo,
+        },
       });
-    }
+    });
+    // 删除waitUserList中time排序后,剩下的用户
+    await this.midwayCache.del('waitUserList');
+    return newWaitUserList;
   }
 }
