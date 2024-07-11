@@ -185,11 +185,10 @@ export class UserLoginService extends BaseService {
     if (wxInfo) {
       wxUserInfo.id = wxInfo.id;
     }
-    await this.userWxEntity.save({
+    return this.userWxEntity.save({
       ...wxUserInfo,
       type,
     });
-    return wxUserInfo;
   }
 
   /**
@@ -230,6 +229,7 @@ export class UserLoginService extends BaseService {
         nickName: wxUserInfo.nickName,
         avatarUrl,
         gender: wxUserInfo.gender,
+        loginType: wxUserInfo.type,
       };
       await this.userInfoEntity.insert(userInfo);
     }
