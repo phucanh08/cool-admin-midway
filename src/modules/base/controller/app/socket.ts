@@ -109,7 +109,7 @@ export class ChatController {
       };
 
       // 查询用户等待列表,如果发现有用户, 就将用户与客服连接
-      serviceObj.userList = await this.connectWaitUserList(userInfo);
+      serviceObj.userList = (await this.connectWaitUserList(userInfo)) || [];
       messageEntity.data = serviceObj.userList;
       await this.mergeRadisSet('serviceList', serviceObj);
     } else if (type === 'user') {
