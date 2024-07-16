@@ -21,6 +21,8 @@ services:
       MYSQL_DATABASE: "cool" # 业务库名
       MYSQL_USER: "root" # 业务库用户名
       MYSQL_PASSWORD: "123456" # 业务库密码
+    networks:
+      - cool
     ports:
       - 3306:3306
 
@@ -32,5 +34,7 @@ services:
       TZ: Asia/Shanghai # 指定时区
     volumes:
       - ./data/redis/:/data/
+    networks:
+      - cool
     ports:
       - 6379:6379

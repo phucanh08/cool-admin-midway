@@ -10,7 +10,7 @@ import * as _ from 'lodash';
 /**
  * 文件上传
  */
-export class PluginUpload extends BasePluginHook implements BaseUpload {
+export class CoolPlugin extends BasePluginHook implements BaseUpload {
   /**
    * 获得上传模式
    * @returns
@@ -119,4 +119,4 @@ export class PluginUpload extends BasePluginHook implements BaseUpload {
 }
 
 // 导出插件实例， Plugin名称不可修改
-export const Plugin = PluginUpload;
+export const Plugin = CoolPlugin;

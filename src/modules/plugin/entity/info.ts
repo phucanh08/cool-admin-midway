@@ -42,6 +42,12 @@ export class PluginInfoEntity extends BaseEntity {
     data: string;
   };
 
+  @Column({ comment: 'ts内容', type: 'json' })
+  tsContent: {
+    type: 'ts';
+    data: string;
+  };
+
   @Column({ comment: '插件的plugin.json', type: 'json', nullable: true })
   pluginJson: any;
 

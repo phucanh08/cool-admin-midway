@@ -296,29 +296,24 @@ export class BaseSysMenuService extends BaseService {
    * @param body body
    */
   async create(body) {
-    const { module, entity, controller, fileName } = body;
+    const { module, entity, controller, service, fileName } = body;
     const basePath = this.app.getBaseDir();
-    // const fileName = await this.fileName(controller);
+    const modulePath = pathUtil.join(basePath, '..', 'src', 'modules', module);
     // 生成Entity
-    const entityPath = pathUtil.join(
-      basePath,
-      'modules',
-      module,
-      'entity',
-      `${fileName}.ts`
-    );
+    const entityPath = pathUtil.join(modulePath, 'entity', `${fileName}.ts`);
     // 生成Controller
     const controllerPath = pathUtil.join(
-      basePath,
-      'modules',
-      module,
+      modulePath,
       'controller',
       'admin',
       `${fileName}.ts`
     );
+    // 生成Service
+    const servicePath = pathUtil.join(modulePath, 'service', `${fileName}.ts`);
     this.createConfigFile(module);
     this.createFile(entityPath, entity);
     this.createFile(controllerPath, controller);
+    this.createFile(servicePath, service);
   }
 
   /**
@@ -329,6 +324,8 @@ export class BaseSysMenuService extends BaseService {
     const basePath = this.app.getBaseDir();
     const configFilePath = pathUtil.join(
       basePath,
+      '..',
+      'src',
       'modules',
       module,
       'config.ts'

@@ -35,12 +35,13 @@ export class BaseAppEvent {
 
   @Event('onMenuInit')
   async onMenuInit() {
+
     console.log('初始化!!');
     // // 启动微信机器人
     // this.weChatyBot.run();
-
     // 初始化阴阳师定时任务
     this.baseOnmyojiTaskService.initTask();
+    if (this.app.getEnv() != 'local') return;
     this.checkConfig();
     this.checkKeys();
   }
@@ -56,6 +57,8 @@ export class BaseAppEvent {
       setTimeout(() => {
         const filePath = path.join(
           this.app.getBaseDir(),
+          '..',
+          'src',
           'modules',
           'base',
           'config.ts'
@@ -86,6 +89,8 @@ export class BaseAppEvent {
       setTimeout(() => {
         const filePath = path.join(
           this.app.getBaseDir(),
+          '..',
+          'src',
           'config',
           'config.default.ts'
         );

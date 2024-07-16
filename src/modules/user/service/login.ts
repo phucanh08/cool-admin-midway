@@ -89,7 +89,7 @@ export class UserLoginService extends BaseService {
    * @param openid
    */
   async uniPhone(access_token, openid, appId) {
-    const instance = await this.pluginService.getInstance('uniphone');
+    const instance: any = await this.pluginService.getInstance('uniphone');
     const phone = await instance.getPhone(access_token, openid, appId);
     if (phone) {
       return await this.phone(phone);

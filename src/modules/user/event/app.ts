@@ -21,6 +21,7 @@ export class UserAppEvent {
 
   @Event('onMenuInit')
   async onMenuInit() {
+    if (this.app.getEnv() != 'local') return;
     this.checkConfig();
   }
 
@@ -35,6 +36,8 @@ export class UserAppEvent {
       setTimeout(() => {
         const filePath = path.join(
           this.app.getBaseDir(),
+          '..',
+          'src',
           'modules',
           'user',
           'config.ts'

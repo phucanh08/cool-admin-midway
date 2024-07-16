@@ -17,7 +17,7 @@ import { BaseSysLogService } from '../../../service/sys/log';
     url: ['add'],
   },
   pageQueryOp: {
-    keyWordLikeFields: ['b.name', 'a.params', 'a.ipAddr'],
+    keyWordLikeFields: ['b.name', 'a.action', 'a.ip'],
     select: ['a.*', 'b.name'],
     join: [
       {

@@ -24,29 +24,6 @@ export class Utils {
   }
 
   /**
-   * 根据IP获得请求地址
-   * @param ip 为空时则为当前请求的IP地址
-   */
-  async getIpAddr(ctx: Context, ip?: string | string[]) {
-    try {
-      if (!ip) {
-        ip = await this.getReqIP(ctx);
-      }
-      const bst = new ipdb.BaseStation(`${this.baseDir}/comm/ipipfree.ipdb`);
-      const result = bst.findInfo(ip, 'CN');
-      const addArr: any = [];
-      if (result) {
-        addArr.push(result.countryName);
-        addArr.push(result.regionName);
-        addArr.push(result.cityName);
-        return _.uniq(addArr).join('');
-      }
-    } catch (err) {
-      return '无法获取地址信息';
-    }
-  }
-
-  /**
    * 去除对象的空值属性
    * @param obj
    */

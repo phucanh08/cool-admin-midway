@@ -83,4 +83,9 @@ export class BaseCommController extends BaseController {
     await this.baseSysLoginService.logout();
     return this.ok();
   }
+
+  @Get('/program', { summary: '编程' })
+  async program() {
+    return this.ok('Node');
+  }
 }

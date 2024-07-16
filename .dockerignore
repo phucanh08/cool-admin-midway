@@ -14,6 +14,5 @@ run/
 .tsbuildinfo
 .tsbuildinfo.*
 .audit
-typings/
 public/uploads/
 cache/

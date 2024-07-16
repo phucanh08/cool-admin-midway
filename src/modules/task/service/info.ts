@@ -332,14 +332,27 @@ export class TaskInfoService extends BaseService {
       const service = await this.app
         .getApplicationContext()
         .getAsync(_.lowerFirst(arr[0]));
-      for (const child of arr) {
+
+      for (let i = 1; i < arr.length; i++) {
+        const child = arr[i];
         if (child.includes('(')) {
-          const lastArr = child.split('(');
-          const param = lastArr[1].replace(')', '');
-          if (!param) {
-            return service[lastArr[0]]();
+          const [methodName, paramsStr] = child.split('(');
+          const params = paramsStr
+            .replace(')', '')
+            .split(',')
+            .map(param => param.trim());
+
+          if (params.length === 1 && params[0] === '') {
+            return service[methodName]();
           } else {
-            return service[lastArr[0]](JSON.parse(param));
+            const parsedParams = params.map(param => {
+              try {
+                return JSON.parse(param);
+              } catch (e) {
+                return param; // 如果不是有效的JSON,则返回原始字符串
+              }
+            });
+            return service[methodName](...parsedParams);
           }
         }
       }

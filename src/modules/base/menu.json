@@ -633,6 +633,18 @@
                         "keepAlive": true,
                         "isShow": true,
                         "childMenus": []
+                    },
+                    {
+                        "name": "字典类型",
+                        "router": null,
+                        "perms": "dict:type:delete,dict:type:update,dict:type:info,dict:type:list,dict:type:page,dict:type:add",
+                        "type": 2,
+                        "icon": null,
+                        "orderNum": 0,
+                        "viewPath": null,
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
                     }
                 ]
             },

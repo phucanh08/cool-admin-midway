@@ -10,6 +10,7 @@ import {
 import { IMidwayKoaApplication } from '@midwayjs/koa';
 import { PLUGIN_CACHE_KEY, PluginCenterService } from '../service/center';
 import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
+import { PluginTypesService } from '../service/types';
 
 /**
  * 插件事件
@@ -31,9 +32,13 @@ export class PluginAppEvent {
   @Inject()
   pluginCenterService: PluginCenterService;
 
+  @Inject()
+  pluginTypesService: PluginTypesService;
+
   @Event('onServerReady')
   async onServerReady() {
     await this.midwayCache.set(PLUGIN_CACHE_KEY, []);
     this.pluginCenterService.init();
+    this.pluginTypesService.reGenerate();
   }
 }

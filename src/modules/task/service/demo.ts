@@ -12,8 +12,8 @@ export class TaskDemoService extends BaseService {
   /**
    * 描述
    */
-  async test() {
-    this.logger.info('我被调用了');
+  async test(a, b) {
+    this.logger.info('我被调用了', a, b);
     return '任务执行成功';
   }
 }

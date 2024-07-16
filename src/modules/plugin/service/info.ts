@@ -21,6 +21,8 @@ import {
   GLOBAL_EVENT_PLUGIN_INIT,
   GLOBAL_EVENT_PLUGIN_REMOVE,
 } from '../event/init';
+import { PluginMap, AnyString } from '../../../../typings/plugin';
+import { PluginTypesService } from './types';
 
 /**
  * 插件信息
@@ -48,6 +50,9 @@ export class PluginService extends BaseService {
   @Inject()
   coolEventManager: CoolEventManager;
 
+  @Inject()
+  pluginTypesService: PluginTypesService;
+
   /**
    * 新增或更新
    * @param param
@@ -55,7 +60,13 @@ export class PluginService extends BaseService {
    */
   async addOrUpdate(param: any, type?: 'add' | 'update') {
     await super.addOrUpdate(param, type);
-    const info = await this.pluginInfoEntity.findOneBy({ id: param.id });
+    const info = await this.pluginInfoEntity
+      .createQueryBuilder('a')
+      .select(['a.id', 'a.keyName', 'a.status', 'a.hook'])
+      .where({
+        id: Equal(param.id),
+      })
+      .getOne();
     if (info.status == 1) {
       await this.reInit(info.keyName);
     } else {
@@ -84,6 +95,7 @@ export class PluginService extends BaseService {
       keyName,
       isHook
     );
+    this.pluginTypesService.deleteDtsFile(keyName);
   }
 
   /**
@@ -103,7 +115,10 @@ export class PluginService extends BaseService {
    * @param param
    */
   async update(param: any) {
-    const old = await this.pluginInfoEntity.findOneBy({ id: param.id });
+    const old = await this.pluginInfoEntity.findOne({
+      where: { id: param.id },
+      select: ['id', 'status', 'hook'],
+    });
     // 启用插件，禁用同名插件
     if (old.hook && param.status == 1 && old.status != param.status) {
       await this.pluginInfoEntity.update(
@@ -129,9 +144,13 @@ export class PluginService extends BaseService {
    * @param params 参数
    * @returns
    */
-  async invoke(key: string, method: string, ...params) {
+  async invoke<K extends keyof PluginMap>(
+    key: K | AnyString,
+    method: string,
+    ...params
+  ) {
     // 实例
-    const instance = await this.getInstance(key);
+    const instance: any = await this.getInstance(key);
     return await instance[method](...params);
   }
 
@@ -140,7 +159,9 @@ export class PluginService extends BaseService {
    * @param key
    * @returns
    */
-  async getInstance(key: string) {
+  async getInstance<K extends keyof PluginMap>(
+    key: K | AnyString
+  ): Promise<K extends keyof PluginMap ? PluginMap[K] : any> {
     const check = await this.checkStatus(key);
     if (!check) throw new CoolCommException(`插件[${key}]不存在或已禁用`);
     let instance;
@@ -188,8 +209,9 @@ export class PluginService extends BaseService {
         message: `插件信息不完整，请检查${data.errorData}`,
       };
     }
-    const check = await this.pluginInfoEntity.findOneBy({
-      keyName: data.pluginJson.key,
+    const check = await this.pluginInfoEntity.findOne({
+      where: { keyName: Equal(data.pluginJson.key) },
+      select: ['id', 'hook', 'status'],
     });
     if (check && !check.hook) {
       return {
@@ -219,13 +241,17 @@ export class PluginService extends BaseService {
     readme: string;
     logo: string;
     content: string;
+    tsContent: string;
     errorData: string;
   }> {
-    // const plugin = await download(encodeURI(url));
     const decompress = require('decompress');
     const files = await decompress(filePath);
     let errorData;
-    let pluginJson: PluginInfo, readme: string, logo: string, content: string;
+    let pluginJson: PluginInfo,
+      readme: string,
+      logo: string,
+      content: string,
+      tsContent: string;
     try {
       errorData = 'plugin.json';
       pluginJson = JSON.parse(
@@ -245,6 +271,11 @@ export class PluginService extends BaseService {
         path: 'src/index.js',
         type: 'file',
       }).data.toString();
+      tsContent =
+        _.find(files, {
+          path: 'source/index.ts',
+          type: 'file',
+        })?.data?.toString() || '';
     } catch (e) {
       throw new CoolCommException('插件信息不完整');
     }
@@ -253,6 +284,7 @@ export class PluginService extends BaseService {
       readme,
       logo,
       content,
+      tsContent,
       errorData,
     };
   }
@@ -268,9 +300,15 @@ export class PluginService extends BaseService {
     if (checkResult.type != 3 && !forceBool) {
       return checkResult;
     }
-    const { pluginJson, readme, logo, content } = await this.data(filePath);
-    const check = await this.pluginInfoEntity.findOneBy({
-      keyName: pluginJson.key,
+    const { pluginJson, readme, logo, content, tsContent } = await this.data(
+      filePath
+    );
+    if (pluginJson.key == 'plugin') {
+      throw new CoolCommException('插件key不能为plugin，请更换其他key');
+    }
+    const check = await this.pluginInfoEntity.findOne({
+      where: { keyName: Equal(pluginJson.key) },
+      select: ['id', 'status', 'config'],
     });
     const data = {
       name: pluginJson.name,
@@ -283,6 +321,10 @@ export class PluginService extends BaseService {
       content: {
         type: 'comm',
         data: content,
+      },
+      tsContent: {
+        type: 'ts',
+        data: tsContent,
       },
       description: pluginJson.description,
       pluginJson,
@@ -303,6 +345,7 @@ export class PluginService extends BaseService {
       // 全新安装
       await this.pluginInfoEntity.insert(data);
     }
+    this.pluginTypesService.generateDtsFile(pluginJson.key, tsContent);
     // 初始化插件
     await this.reInit(pluginJson.key);
   }

@@ -74,7 +74,7 @@ export class UserSmsService extends BaseService {
    */
   async checkCode(phone, code) {
     const cacheCode = await this.midwayCache.get(`sms:${phone}`);
-    if (cacheCode == code) {
+    if (code && cacheCode == code) {
       return true;
     }
     return false;

@@ -18,10 +18,6 @@ export class BaseSysLogEntity extends BaseEntity {
   @Column({ comment: 'ip', nullable: true })
   ip: string;
 
-  @Index()
-  @Column({ comment: 'ip地址', nullable: true, length: 50 })
-  ipAddr: string;
-
   @Column({ comment: '参数', nullable: true, type: 'json' })
   params: string;
 }

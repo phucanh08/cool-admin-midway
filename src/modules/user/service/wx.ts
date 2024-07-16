@@ -32,7 +32,7 @@ export class UserWxService extends BaseService {
    * @returns
    */
   async getMiniApp() {
-    const wxPlugin = await this.pluginService.getInstance('wx');
+    const wxPlugin: any = await this.pluginService.getInstance('wx');
     return wxPlugin.MiniApp();
   }
 
@@ -41,7 +41,7 @@ export class UserWxService extends BaseService {
    * @returns
    */
   async getOfficialAccount() {
-    const wxPlugin = await this.pluginService.getInstance('wx');
+    const wxPlugin: any = await this.pluginService.getInstance('wx');
     return wxPlugin.OfficialAccount();
   }
 
@@ -50,7 +50,7 @@ export class UserWxService extends BaseService {
    * @returns
    */
   async getOpenPlatform() {
-    const wxPlugin = await this.pluginService.getInstance('wx');
+    const wxPlugin: any = await this.pluginService.getInstance('wx');
     return wxPlugin.OpenPlatform();
   }
 

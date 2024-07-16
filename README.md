@@ -25,6 +25,10 @@
 
 [https://cool-js.com](https://cool-js.com)
 
+## 视频教程
+
+[官方 B 站视频教程](https://www.bilibili.com/video/BV1j1421R7aB)
+
 <!-- 在此次添加使用文档 -->
 
 ## 演示

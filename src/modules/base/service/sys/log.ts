@@ -37,10 +37,6 @@ export class BaseSysLogService extends BaseService {
     const sysLog = new BaseSysLogEntity();
     sysLog.userId = userId;
     sysLog.ip = typeof ip === 'string' ? ip : ip.join(',');
-    const ipAddrArr = [];
-    for (const e of sysLog.ip.split(','))
-      ipAddrArr.push(await this.utils.getIpAddr(context, e));
-    sysLog.ipAddr = ipAddrArr.join(',');
     sysLog.action = url.split('?')[0];
     sysLog.params = params;
     await this.baseSysLogEntity.insert(sysLog);
